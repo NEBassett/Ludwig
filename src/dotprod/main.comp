@@ -1,0 +1,29 @@
+#version 440 core
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 0, r32f) readonly uniform image1D a;
+layout(binding = 1, r32f) readonly uniform image1D b;
+layout(binding = 2, r32f) writeonly uniform image1D c;
+
+shared int lock;
+
+void main()
+{
+  int id = int(gl_GlobalInvocationID.x);
+
+  if(id == 0)
+  {
+    lock = 0;
+  }
+
+  bool finished = false;
+  while(!finished)
+  {
+    if(atomicCompSwap(lock, 0, 1) == 0)
+    {
+      imageStore(c, 0, (imageLoad(c, 0).x + imageLoad(b, id).x*imageLoad(a, id).x).xxxx)
+      finished = true;
+    }
+  }
+}
