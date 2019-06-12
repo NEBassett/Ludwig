@@ -66,6 +66,10 @@ namespace GLDSEL
     glUniform1i(loc, tex.tex);
   }
 
+  template<typename T, typename U>
+  GLDSEL_FUNC_DECL static auto setUniform(const T&, const U&, noMetadata)
+  { }
+
 
 
   template<typename T>
@@ -91,7 +95,10 @@ namespace GLDSEL
     template<typename U, typename = decltype(T(std::declval<U>()))>
     GLDSEL_FUNC_DECL auto set(const U& x)
     {
-      setUniform(location, x);
+      boost::hana::if_(boost::hana::type_c<md> == boost::hana::type_c<noMetadata>,
+        [this, x](auto&& y) { setUniform(location, x); },
+        [this, x](auto&& y) { setUniform(location, x, metadata); }
+      )(x);
     }
   };
 
