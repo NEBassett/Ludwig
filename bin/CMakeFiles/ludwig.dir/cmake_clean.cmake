@@ -1,10 +1,8 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/ludwig.dir/src/main.cpp.obj"
-  "CMakeFiles/ludwig.dir/src/ludwig.cpp.obj"
+  "CMakeFiles/ludwig.dir/src/main.cpp.o"
+  "CMakeFiles/ludwig.dir/src/ludwig.cpp.o"
   "ludwig.pdb"
-  "ludwig.exe"
-  "ludwig.exe.manifest"
-  "libludwig.dll.a"
+  "ludwig"
 )
 
 # Per-language clean rules from dependency scanning.

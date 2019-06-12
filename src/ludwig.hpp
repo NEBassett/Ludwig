@@ -34,6 +34,12 @@ class conjugateGradientSolver
       )
   );
 
+  using clear  = decltype(
+     GLDSEL::make_program_from_paths(
+          boost::hana::make_tuple("", "")
+      )
+  );
+
   using multAdd = decltype(
      GLDSEL::make_program_from_paths(
           boost::hana::make_tuple("", ""),
@@ -55,6 +61,7 @@ class conjugateGradientSolver
   ratio ratio_;
   copy vcopy_;
   multAdd madd_;
+  clear clear_;
 
 
 public:
@@ -68,6 +75,8 @@ public:
   conjugateGradientSolver(const conjugateGradientSolver &other) = delete;
 
   conjugateGradientSolver(conjugateGradientSolver &other) = delete; // no copying, this owns a resource
+
+  void test(int, GLuint, GLuint, GLuint, GLuint);
 
   void operator()(int dim, GLuint matrix, GLuint output, GLuint x0);
 

@@ -91,14 +91,7 @@ namespace GLDSEL
     template<typename U, typename = decltype(T(std::declval<U>()))>
     GLDSEL_FUNC_DECL auto set(const U& x)
     {
-      boost::hana::if_(boost::hana::type_c<md> == boost::hana::type_c<noMetadata>,
-        [this, x](auto&& y) { setUniform(location, x); },
-        [this, x](auto&& y) { setUniform(location, x, metadata); }
-      )(x);
-      // return boost::hana::if_(std::is_same<md, noMetadata>::value,
-      //   [](auto&& y, auto&& mdata){ setUniform(location, std::forward<decltype(y)>(y), metadata); return 0; },
-      //   [](auto&& y, auto&& mdata){ setUniform(location, std::forward<decltype(y)>(y)); return 0; }
-      // )(x, metadata);
+      setUniform(location, x);
     }
   };
 

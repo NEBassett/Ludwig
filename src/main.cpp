@@ -67,131 +67,156 @@ struct screenQuad
 
 
 
-
-
-
 int main()
 {
-  glfwSetErrorCallback([](auto err, const auto* desc){ std::cout << "Error: " << desc << '\n'; });
-
-  // glfw init
-  if(!glfwInit())
+  try
   {
-    std::cout << "glfw failed to initialize\n";
-    std::exit(1);
-  }
+    glfwSetErrorCallback([](auto err, const auto* desc){ std::cout << "Error: " << desc << '\n'; });
 
-  // context init
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  auto window = glfwCreateWindow(640, 480, "Lattice Boltzmann Methods", NULL, NULL);
-  if (!window)
-  {
-    std::cout << "window/glcontext failed to initialize\n";
-    std::exit(1);
-  }
+    // glfw init
+    if(!glfwInit())
+    {
+      throw std::runtime_error(
+        "GLFW failed to initialize"
+      );
+    }
 
-  glfwMakeContextCurrent(window);
+    // context init
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    auto window = glfwCreateWindow(640, 480, "Ludwig", NULL, NULL);
+    if (!window)
+    {
+      throw std::runtime_error(
+        "GLFW window creation failed"
+      );
+    }
 
-  // glew init
-  auto err = glewInit();
-  if(GLEW_OK != err)
-  {
-    std::cout << "glew failed to init: " << glewGetErrorString(err) << '\n';
-    std::exit(1);
-  }
+    glfwMakeContextCurrent(window);
 
-  // gl init
-  glEnable(GL_DEBUG_OUTPUT);
-  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-  glPointSize(15.5f);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glDebugMessageCallback(msgCallback, 0);
-  glEnable(GL_DEPTH_TEST);
+    // glew init
+    auto err = glewInit();
+    if(GLEW_OK != err)
+    {
+      //std::cout << "glew failed to init: " << glewGetErrorString(err) << '\n';
+      throw std::runtime_error(
+        std::string("GLEW initialization failed with error: ") + std::string((const char*)(glewGetErrorString(err)))
+      );
+    }
 
-
-
-  // program initialization
+    // gl init
+    glEnable(GL_DEBUG_OUTPUT);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glDebugMessageCallback(msgCallback, 0);
+    glEnable(GL_DEPTH_TEST);
 
 
-  int width, height;
-  double time = glfwGetTime();
-  glm::mat4 proj;
-  double tdelta;
-  double temp;
 
-  //glfwSetWindowUserPointer(window, &fsim);
+    // program initialization
 
-   glfwSetKeyCallback(window, [](auto *window, auto key, auto, auto action, auto mods){
-     //auto fsimptr = static_cast<>(glfwGetWindowUserPointer(window));
 
-     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-       glfwSetWindowShouldClose(window, GLFW_TRUE);
-     if(key == GLFW_KEY_F4)
-     { /* later */ }
-   });
+    int width, height;
+    double time = glfwGetTime();
+    glm::mat4 proj;
+    double tdelta;
+    double temp;
 
-   screenQuad quad;
+    //glfwSetWindowUserPointer(window, &fsim);
 
-   auto draw = GLDSEL::make_program_from_paths(
-    boost::hana::make_tuple("../src/main/vertex.vs", "../src/main/fragment.fs"),
-    glDselUniform("time", float),
-    glDselUniform("model", glm::mat4),
-    glDselUniform("view", glm::mat4),
-    glDselUniform("proj", glm::mat4)
-  );
+     glfwSetKeyCallback(window, [](auto *window, auto key, auto, auto action, auto mods){
+       //auto fsimptr = static_cast<>(glfwGetWindowUserPointer(window));
 
-   constexpr int dim = 3;
+       if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+         glfwSetWindowShouldClose(window, GL_TRUE);
+       if(key == GLFW_KEY_F4)
+       { /* later */ }
+     });
 
-   conjugateGradientSolver cgsolver(10);
+     screenQuad quad;
 
-   GLuint tex[3];
-
-   glGenTextures(3, tex);
-
-   std::vector<float> initial({0,0,0});
-   std::vector<float> target({3,4,5});
-   std::vector<float> system({2,-1,0,-1,2,-1,0,-1,2});
-
-   glBindTexture(GL_TEXTURE_1D, tex[0]);
-   glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, dim, 0, GL_RED, GL_FLOAT, initial.data());
-
-   glBindTexture(GL_TEXTURE_1D, tex[1]);
-   glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, dim, 0, GL_RED, GL_FLOAT, target.data());
-
-   glBindTexture(GL_TEXTURE_2D, tex[2]);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, dim, dim, 0, GL_RED, GL_FLOAT, system.data());
-
-   cgsolver(dim, tex[2], tex[1], tex[0]);
-
-   glfwSwapInterval(1);
-   while(!glfwWindowShouldClose(window))
-   {
-    auto oldT = time;
-    time = glfwGetTime();
-
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
-    proj = glm::perspective(1.57f, float(width)/float(height), 0.1f, 7000.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    //draw(proj, view, glm::mat4(), glfwGetTime(), plane);
-    draw.setUniforms( // set uniforms
-      glDselArgument("model", glm::mat4()),
-      glDselArgument("view", glm::mat4()),
-      glDselArgument("proj", proj),
-      glDselArgument("time", float(glfwGetTime()))
+     auto draw = GLDSEL::make_program_from_paths(
+      boost::hana::make_tuple("../src/main/vertex.vert", "../src/main/fragment.frag"),
+      glDselUniform("time", float),
+      glDselUniform("model", glm::mat4),
+      glDselUniform("view", glm::mat4),
+      glDselUniform("proj", glm::mat4)
     );
 
-    glBindVertexArray(quad.vao);
+     constexpr int dim = 2;
 
-    glDrawArrays(GL_TRIANGLES, 0, 6); // draw quad
+     conjugateGradientSolver cgsolver(2);
 
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+     GLuint tex[4];
+
+     glGenTextures(4, tex);
+
+     std::vector<float> initial({2,1});
+     std::vector<float> target({1,2});
+     std::vector<float> b({1,2});
+     std::vector<float> system({4, 1, 1, 3});
+
+     glBindTexture(GL_TEXTURE_1D, tex[0]);
+     glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, dim, 0, GL_RED, GL_FLOAT, initial.data());
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+     glBindTexture(GL_TEXTURE_1D, tex[1]);
+     glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, dim, 0, GL_RED, GL_FLOAT, target.data());
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+     glBindTexture(GL_TEXTURE_2D, tex[2]);
+     glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, dim, dim, 0, GL_RED, GL_FLOAT, system.data());
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+     glBindTexture(GL_TEXTURE_1D, tex[3]);
+     glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, dim, 0, GL_RED, GL_FLOAT, b.data());
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+
+     // tex[3] - tex[2]*tex[1]
+     cgsolver(dim, tex[2], tex[1], tex[0]);
+
+     glActiveTexture(GL_TEXTURE0);
+     glBindTexture(GL_TEXTURE_1D, tex[0]); // initial
+
+     glfwSwapInterval(1);
+     while(!glfwWindowShouldClose(window))
+     {
+      auto oldT = time;
+      time = glfwGetTime();
+
+      glfwGetFramebufferSize(window, &width, &height);
+      glViewport(0, 0, width, height);
+      proj = glm::perspective(1.57f, float(width)/float(height), 0.1f, 7000.0f);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      //draw(proj, view, glm::mat4(), glfwGetTime(), plane);
+      draw.setUniforms( // set uniforms
+        glDselArgument("model", glm::mat4()),
+        glDselArgument("view", glm::mat4()),
+        glDselArgument("proj", proj),
+        glDselArgument("time", float(glfwGetTime()))
+      );
+
+      glBindVertexArray(quad.vao);
+
+      glDrawArrays(GL_TRIANGLES, 0, 6); // draw quad
+
+      glfwSwapBuffers(window);
+      glfwPollEvents();
+    }
+    glfwTerminate();
+  } catch(const std::exception& e){
+    std::cout << "main failed with " << e.what() << '\n';
   }
 
-  glfwTerminate();
-  return 0;
+    return 0;
 }

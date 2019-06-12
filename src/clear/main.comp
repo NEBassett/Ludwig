@@ -1,0 +1,10 @@
+#version 440 core
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 0, r32f) writeonly uniform image1D a;
+
+void main()
+{
+    imageStore(a, int(gl_GlobalInvocationID.x), vec4(0.00));
+}

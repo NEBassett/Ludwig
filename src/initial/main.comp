@@ -9,7 +9,7 @@ uniform float factor;
 layout(binding = 0, r32f) readonly uniform image2D A;
 layout(binding = 1, r32f) readonly uniform image1D v;
 layout(binding = 2, r32f) readonly uniform image1D r;
-layout(binding = 3, r32f) writeonly uniform image1D b;
+layout(binding = 3, r32f) coherent uniform image1D b;
 layout(binding = 4, r32i) coherent uniform iimage1D locks;
 
 void main()
@@ -19,16 +19,16 @@ void main()
   bool finished = false;
 
   float term = factor*imageLoad(A, ivec2(id, product)).x*imageLoad(v, product).x;
-  if(id == 0)
+  if(product == 0)
   {
-    term += imageLoad(r, id).x;
+    term += imageLoad(r, id).x; // add the r in somewhere
   }
 
   while(!finished)
   {
     if(imageAtomicCompSwap(locks, id, 0, 1) == 0)
     {
-      term += imageLoad(b, id);
+      term += imageLoad(b, id).x;
 
       imageStore(b, id, term.xxxx);
 

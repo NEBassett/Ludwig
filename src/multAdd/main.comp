@@ -12,5 +12,5 @@ layout(binding = 3, r32f) writeonly uniform image1D d;
 void main()
 {
   int id = int(gl_GlobalInvocationID.x);
-  imageStore(d, id, (imageLoad(a, id).x*imageLoad(c, 0).x*factor + imageLoad(b, id).x).xxxx)
+  imageStore(d, id, (imageLoad(a, id).x*imageLoad(c, 0).x*factor + imageLoad(b, id).x).xxxx);
 }

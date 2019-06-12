@@ -6,6 +6,6 @@ layout(binding = 0, r32f) readonly uniform image1D a;
 layout(binding = 1, r32f) writeonly uniform image1D b;
 
 void main()
-{    
-    imageStore(c, 0, imageLoad(a, int(gl_GlobalInvocationID.x)));
+{
+    imageStore(b, int(gl_GlobalInvocationID.x), imageLoad(a, int(gl_GlobalInvocationID.x)).xxxx);
 }

@@ -1,8 +1,3 @@
-C:/Ludwig/bin/CMakeFiles/ludwig.dir
-C:/Ludwig/bin/CMakeFiles/edit_cache.dir
-C:/Ludwig/bin/CMakeFiles/rebuild_cache.dir
-C:/Ludwig/bin/glfw/CMakeFiles/edit_cache.dir
-C:/Ludwig/bin/glfw/CMakeFiles/rebuild_cache.dir
-C:/Ludwig/bin/glfw/src/CMakeFiles/rebuild_cache.dir
-C:/Ludwig/bin/glfw/src/CMakeFiles/glfw.dir
-C:/Ludwig/bin/glfw/src/CMakeFiles/edit_cache.dir
+/home/chongus/Devel/Ludwig/bin/CMakeFiles/rebuild_cache.dir
+/home/chongus/Devel/Ludwig/bin/CMakeFiles/ludwig.dir
+/home/chongus/Devel/Ludwig/bin/CMakeFiles/edit_cache.dir
